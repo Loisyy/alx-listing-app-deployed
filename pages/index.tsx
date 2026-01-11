@@ -1,13 +1,42 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star, Bed, Droplet, Users } from 'lucide-react';
 import Pill from '@/components/common/Pill';
 import { HERO_BACKGROUND_IMAGE, FILTERS, PROPERTYLISTINGSAMPLE } from '@/constants';
 import { PropertyProps } from '@/interfaces';
+import axios from 'axios';
 
 const HomePage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState("All");
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get('/api/properties');
+        setProperties(response.data);
+      }
+      catch (error) {
+        console.error("Error fetching properties:", error);
+      }
+      finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, [])
+  
+  if(loading) {
+    return (
+      <div className="flex items-center justify-center h-screen"> 
+        <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -58,8 +87,8 @@ const HomePage: React.FC = () => {
       {/* Property Listings Section */}
       <section className="max-w-7xl mx-auto px-6 pb-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {PROPERTYLISTINGSAMPLE.map((property, index) => (
-            <PropertyCard key={index} property={property} />
+          {properties.map((property: PropertyProps) => (
+            <PropertyCard key={property.id} property={property} />
           ))}
         </div>
       </section>
